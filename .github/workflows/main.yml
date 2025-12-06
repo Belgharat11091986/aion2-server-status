@@ -1,0 +1,46 @@
+# .github/workflows/main.yml
+name: Server Status Check
+
+# Esegui automaticamente ogni 10 minuti
+on:
+  schedule:
+    # '*/10 * * * *' significa: ogni 10 minuti
+    - cron: '*/10 * * * *'
+  # Permette l'esecuzione manuale dalla tab Actions
+  workflow_dispatch:
+
+jobs:
+  check-servers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        # Scarica i file del tuo repository (inclusi check_status.py)
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        # Configura l'ambiente Python 3.x
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        # Installa dipendenze (da requirements.txt, che è vuoto, ma buona pratica)
+        run: pip install -r requirements.txt
+
+      - name: Run status check script
+        # Esegue lo script che crea/aggiorna server_status.json
+        run: python check_status.py
+
+      - name: Commit results
+        # Salva e carica il file JSON aggiornato sul repository
+        run: |
+          # Configura l'identità per il commit automatico
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          
+          # Aggiunge il file JSON aggiornato al commit
+          git add server_status.json
+          
+          # Committa solo se ci sono stati cambiamenti, altrimenti salta (evita errori)
+          git commit -m "Aggiornamento automatico stato server" || echo "Nessun cambiamento da committare"
+          git push
