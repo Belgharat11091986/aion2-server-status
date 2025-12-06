@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aion 2 TW Server Status - Tracker</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #e9ebee; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
+        h1 { color: #2C3E50; text-align: center; border-bottom: 2px solid #3498DB; padding-bottom: 10px; }
+        .server-table { width: 100%; border-collapse: collapse; margin-top: 25px; }
+        .server-table th, .server-table td { padding: 15px; border: 1px solid #ECF0F1; text-align: left; }
+        .server-table th { background-color: #3498DB; color: white; font-weight: 600; }
+        .online { background-color: #E8F8F5; color: #27AE60; font-weight: bold; }
+        .offline { background-color: #FCF3CF; color: #E74C3C; font-weight: bold; }
+        .update-time { text-align: right; font-size: 0.9em; color: #7F8C8D; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Server Status Aion 2 TW</h1>
+        <div id="status-container">
+            <p>Caricamento stato in corso...</p>
+        </div>
+        <div class="update-time" id="last-update"></div>
+    </div>
+
+    <script>
+        const JSON_URL = 'server_status.json';
+
+        async function fetchStatus() {
+            try {
+                // Evita la cache aggiungendo un parametro timestamp casuale
+                const response = await fetch(JSON_URL + '?' + new Date().getTime()); 
+                const data = await response.json();
+
+                let tableHTML = '<table class="server-table">';
+                tableHTML += '<thead><tr><th>Nome Server</th><th>IP:Porta</th><th>Stato</th></tr></thead><tbody>';
+
+                for (const serverName in data) {
+                    const serverData = data[serverName];
+                    const status = serverData.status;
+                    const ipPort = serverData.ip_port;
+                    
+                    // Controlla se il testo dello status contiene 'Online'
+                    const statusClass = status.includes('Online') ? 'online' : 'offline';
+                    
+                    tableHTML += `
+                        <tr>
+                            <td>${serverName}</td>
+                            <td>${ipPort}</td>
+                            <td class="${statusClass}">${status}</td>
+                        </tr>
+                    `;
+                }
+
+                tableHTML += '</tbody></table>';
+
+                document.getElementById('status-container').innerHTML = tableHTML;
+                
+                const lastCheckTime = Object.values(data)[0] ? Object.values(data)[0].last_check : 'N/A';
+                document.getElementById('last-update').textContent = `Ultimo controllo: ${lastCheckTime} (Aggiornamento automatico ogni 10 min)`;
+
+
+            } catch (error) {
+                console.error("Errore nel caricamento dello stato:", error);
+                document.getElementById('status-container').innerHTML = '<p style="color:red; text-align:center;">Impossibile caricare i dati. Verifica che il workflow GitHub Actions sia stato eseguito almeno una volta.</p>';
+            }
+        }
+
+        fetchStatus();
+        // Aggiorna la pagina web ogni 5 minuti
+        setInterval(fetchStatus, 300000); 
+    </script>
+</body>
+</html>
