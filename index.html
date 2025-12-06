@@ -42,7 +42,6 @@
                     const status = serverData.status;
                     const ipPort = serverData.ip_port;
                     
-                    // Controlla se il testo dello status contiene 'Online'
                     const statusClass = status.includes('Online') ? 'online' : 'offline';
                     
                     tableHTML += `
@@ -64,7 +63,7 @@
 
             } catch (error) {
                 console.error("Errore nel caricamento dello stato:", error);
-                document.getElementById('status-container').innerHTML = '<p style="color:red; text-align:center;">Impossibile caricare i dati. Verifica che il workflow GitHub Actions sia stato eseguito almeno una volta.</p>';
+                document.getElementById('status-container').innerHTML = '<p style="color:red; text-align:center;">Impossibile caricare i dati. Devi prima eseguire il workflow GitHub Actions.</p>';
             }
         }
 
